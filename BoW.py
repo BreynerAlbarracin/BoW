@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import sys
 from sklearn.cluster import KMeans
 from sklearn.neighbors import NearestNeighbors
 from matplotlib import pyplot as plt
@@ -13,8 +14,11 @@ def features(image, extractor):
     img2 = image
     cv2.drawKeypoints(img2 ,kp, img2, color=(0,255,0), flags=0)
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
-    plt.imshow(img2)
-    plt.show()
+    print('Cantidad de descriptores por imagen')
+    print(len(des))
+    if(showIMG):
+        plt.imshow(img2)
+        plt.show()
 
     return kp, des
 
@@ -31,22 +35,34 @@ def gray(img):
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 #BoW
-showIMG = false;
-k = 10;
+print(sys.argv)
+showIMG = False
+showCodo = False
+k = 20
+
+if len(sys.argv) > 3:
+    if(sys.argv[1] == 'true'):
+        showIMG = True
+
+    if(sys.argv[2] == 'true'):
+        showCodo = True
+
+    if(sys.argv[3] != 'none'):
+        k = int(sys.argv[3])
 
 images_paths = [
-    'gsxs1.jpg',
-    'gsxs2.jpg',
-    'gsxs3.jpg',
-    'gsxs4.jpg',
-    'gsxs5.jpg',
-    'gsxs6.jpg',
-    'gsxs7.jpg'
+    'img/gsxs150/gsxs1.jpg',
+    'img/gsxs150/gsxs2.jpg',
+    'img/gsxs150/gsxs3.jpg',
+    'img/gsxs150/gsxs4.jpg',
+    'img/gsxs150/gsxs5.jpg',
+    'img/gsxs150/gsxs6.jpg',
+    'img/gsxs150/gsxs7.jpg'
 ]
 
 images = []
 for path in images_paths:
-    img = cv2.imread('img/gsxs150/' + path)
+    img = cv2.imread(path)
     images.append(img)
 
 print('Cantidad de imagenes')
@@ -64,16 +80,19 @@ print('Cantidad de descriptores acumulados')
 print(len(descriptor_list))
 
 # Calcular K por medoto Codo
-# Nc = range(1, k)
-# kmeans = [KMeans(n_clusters=i) for i in Nc]
-# score = [kmeans[i].fit(descriptor_list).score(descriptor_list) for i in range(len(kmeans))]
-# plt.plot(Nc,score)
-# plt.xlabel('Number of Clusters')
-# plt.ylabel('Score')
-# plt.title('Elbow Curve')
-# plt.show()
+if(showCodo):
+    print('Computando grafica para Metodo Codo')
+    Nc = range(1, k)
+    kmeans = [KMeans(n_clusters=i) for i in Nc]
+    score = [kmeans[i].fit(descriptor_list).score(descriptor_list) for i in range(len(kmeans))]
+    plt.plot(Nc,score)
+    plt.xlabel('Number of Clusters')
+    plt.ylabel('Score')
+    plt.title('Elbow Curve')
+    plt.show()
 
 # Creamos los clusters
+print('Creando kmeans con ' + str(k) + ' clusters')
 kmeans = KMeans(n_clusters = k).fit(descriptor_list)
 centroids = kmeans.cluster_centers_
 histogram = build_histogram(descriptor_list, kmeans)
@@ -85,11 +104,3 @@ plt.subplot(122)
 plt.bar(list(range(len(centroids))), histogram)
 
 plt.show()
-
-# data = cv2.imread('img/gsxs-calle')
-# data = gray(data)
-# keypoint, descriptor = features(data, extractor)
-# histogram = build_histogram(descriptor, kmeans)
-# neighbor = NearestNeighbors(n_neighbors = 20)
-# neighbor.fit(preprocess_image)
-# dist, result = neighbor.kneighbors([histogram])
