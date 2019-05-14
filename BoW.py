@@ -39,8 +39,9 @@ print(sys.argv)
 showIMG = False
 showCodo = False
 k = 20
+pathGeneral = 'img/gsxs150/moto'
 
-if len(sys.argv) > 3:
+if len(sys.argv) > 4:
     if(sys.argv[1] == 'true'):
         showIMG = True
 
@@ -50,20 +51,24 @@ if len(sys.argv) > 3:
     if(sys.argv[3] != 'none'):
         k = int(sys.argv[3])
 
+    if(sys.argv[4] != 'none'):
+        pathGeneral = sys.argv[4]
+
 images_paths = [
-    'img/gsxs150/gsxs1.jpg',
-    'img/gsxs150/gsxs2.jpg',
-    'img/gsxs150/gsxs3.jpg',
-    'img/gsxs150/gsxs4.jpg',
-    'img/gsxs150/gsxs5.jpg',
-    'img/gsxs150/gsxs6.jpg',
-    'img/gsxs150/gsxs7.jpg'
+    pathGeneral + '1.jpg',
+    pathGeneral + '2.jpg',
+    pathGeneral + '3.jpg',
+    pathGeneral + '4.jpg',
+    pathGeneral + '5.jpg',
+    pathGeneral + '6.jpg',
+    pathGeneral + '7.jpg'
 ]
 
 images = []
 for path in images_paths:
     img = cv2.imread(path)
-    images.append(img)
+    if(img is not None):
+        images.append(img)
 
 print('Cantidad de imagenes')
 print(len(images))
