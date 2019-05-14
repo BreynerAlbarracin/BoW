@@ -41,7 +41,7 @@ showCodo = False
 k = 20
 pathGeneral = 'img/gsxs150/moto'
 
-if len(sys.argv) > 3:
+if len(sys.argv) > 4:
     if(sys.argv[1] == 'true'):
         showIMG = True
 
@@ -50,6 +50,9 @@ if len(sys.argv) > 3:
 
     if(sys.argv[3] != 'none'):
         k = int(sys.argv[3])
+
+    if(sys.argv[4] != 'none'):
+        pathGeneral = sys.argv[4]
 
 images_paths = [
     pathGeneral + '1.jpg',
@@ -61,12 +64,11 @@ images_paths = [
     pathGeneral + '7.jpg'
 ]
 
-print(images_paths)
-
 images = []
 for path in images_paths:
     img = cv2.imread(path)
-    images.append(img)
+    if(img is not None):
+        images.append(img)
 
 print('Cantidad de imagenes')
 print(len(images))
