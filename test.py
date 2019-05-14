@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import sys
+import os
 from sklearn.cluster import KMeans
 from sklearn.neighbors import NearestNeighbors
 from matplotlib import pyplot as plt
@@ -28,6 +29,7 @@ def build_histogram(descriptor_list, kmeans):
     kmeans_result =  kmeans.predict(descriptor_list)
     for i in kmeans_result:
         histogram[i] += 1.0
+    histogram = histogram / len(kmeans.cluster_centers_)
     return histogram
 
 # Combierte ua imagen a escala de grises
@@ -35,13 +37,11 @@ def gray(img):
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 #BoW
-print(sys.argv)
 showIMG = False
 showCodo = False
 k = 20
-pathGeneral = 'img/gsxs150/moto'
 
-if len(sys.argv) > 4:
+if len(sys.argv) > 3:
     if(sys.argv[1] == 'true'):
         showIMG = True
 
@@ -51,71 +51,71 @@ if len(sys.argv) > 4:
     if(sys.argv[3] != 'none'):
         k = int(sys.argv[3])
 
-    if(sys.argv[4] != 'none'):
-        pathGeneral = sys.argv[4]
+root = os.getcwd() + '/img/'
+dirs = os.listdir(root)
 
-images_paths = [
-    pathGeneral + '1.jpg',
-    pathGeneral + '2.jpg',
-    pathGeneral + '3.jpg',
-    pathGeneral + '4.jpg',
-    pathGeneral + '5.jpg',
-    pathGeneral + '6.jpg',
-    pathGeneral + '7.jpg'
-]
+images_paths = []
+for path in dirs:
+    images_paths.append(root + path + '/')
 
-images = []
+neighbors = []
 for path in images_paths:
-    img = cv2.imread(path)
-    if(img is not None):
-        images.append(img)
+    images = []
+    if(path.find('test') < 0):
+        for file in os.listdir(path):
+            img = cv2.imread(path + file)
+            if(img is not None):
+                images.append(img)
 
-print('Cantidad de imagenes')
-print(len(images))
+        print('Cantidad de imagenes')
+        print(len(images))
 
-# Obtenemos los descriptores para cada imagen en el arreglo determinado
-orb = cv2.ORB_create()
-descriptor_list = []
-for image in images:
-    keypoint, descriptors = features(image, orb)
-    for descriptor in descriptors:
-        descriptor_list.append(descriptor)
+        # Obtenemos los descriptores para cada imagen en el arreglo determinado
+        orb = cv2.ORB_create()
+        descriptor_list = []
+        for image in images:
+            keypoint, descriptors = features(image, orb)
+            for descriptor in descriptors:
+                descriptor_list.append(descriptor)
 
-print('Cantidad de descriptores acumulados')
-print(len(descriptor_list))
+        print('Cantidad de descriptores acumulados')
+        print(len(descriptor_list))
 
-# Calcular K por medoto Codo
-if(showCodo):
-    print('Computando grafica para Metodo Codo')
-    Nc = range(1, k)
-    kmeans = [KMeans(n_clusters=i) for i in Nc]
-    score = [kmeans[i].fit(descriptor_list).score(descriptor_list) for i in range(len(kmeans))]
-    plt.plot(Nc,score)
-    plt.xlabel('Number of Clusters')
-    plt.ylabel('Score')
-    plt.title('Elbow Curve')
-    plt.show()
+        # Calcular K por medoto Codo
+        if(showCodo):
+            print('Computando grafica para Metodo Codo')
+            Nc = range(1, k)
+            kmeans = [KMeans(n_clusters=i) for i in Nc]
+            score = [kmeans[i].fit(descriptor_list).score(descriptor_list) for i in range(len(kmeans))]
+            plt.plot(Nc,score)
+            plt.xlabel('Number of Clusters')
+            plt.ylabel('Score')
+            plt.title('Elbow Curve')
+            plt.show()
 
-# Creamos los clusters
-print('Creando kmeans con ' + str(k) + ' clusters')
-kmeans = KMeans(n_clusters = k).fit(descriptor_list)
-centroids = kmeans.cluster_centers_
-histogram = build_histogram(descriptor_list, kmeans)
+        # Creamos los clusters
+        print('Creando kmeans con ' + str(k) + ' clusters')
+        kmeans = KMeans(n_clusters = k).fit(descriptor_list)
+        centroids = kmeans.cluster_centers_
+        histogram = build_histogram(descriptor_list, kmeans)
 
-plt.subplot(121)
-plt.plot(centroids, 'ro')
+        plt.subplot(121)
+        plt.plot(centroids, 'ro')
 
-plt.subplot(122)
-plt.bar(list(range(len(centroids))), histogram)
+        plt.subplot(122)
+        plt.bar(list(range(len(centroids))), histogram)
 
-plt.show()
+        plt.show()
+
+        neighbors.append(histogram)
 
 print('Prueba con Test1')
-data = cv2.imread('img/test/test1.jpg')
+data = cv2.imread('img/test/test2.jpg')
 keypoint, descriptors = features(data, orb)
 histogram2 = build_histogram(descriptors, kmeans)
-neighbor = NearestNeighbors(n_neighbors = len(images))
-neighbor.fit(descriptor_list)
+
+neighbor = NearestNeighbors(n_neighbors = len(neighbors))
+neighbor.fit(neighbors)
 dist, result = neighbor.kneighbors([histogram2])
 
 print(dist)
