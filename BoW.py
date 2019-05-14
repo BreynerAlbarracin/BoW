@@ -31,7 +31,8 @@ def gray(img):
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 #BoW
-k = 800;
+showIMG = false;
+k = 10;
 
 images_paths = [
     'gsxs1.jpg',
@@ -63,23 +64,25 @@ print('Cantidad de descriptores acumulados')
 print(len(descriptor_list))
 
 # Calcular K por medoto Codo
-Nc = range(1, k)
-kmeans = [KMeans(n_clusters=i) for i in Nc]
-score = [kmeans[i].fit(descriptor_list).score(descriptor_list) for i in range(len(kmeans))]
-plt.plot(Nc,score)
-plt.xlabel('Number of Clusters')
-plt.ylabel('Score')
-plt.title('Elbow Curve')
-plt.show()
+# Nc = range(1, k)
+# kmeans = [KMeans(n_clusters=i) for i in Nc]
+# score = [kmeans[i].fit(descriptor_list).score(descriptor_list) for i in range(len(kmeans))]
+# plt.plot(Nc,score)
+# plt.xlabel('Number of Clusters')
+# plt.ylabel('Score')
+# plt.title('Elbow Curve')
+# plt.show()
 
 # Creamos los clusters
 kmeans = KMeans(n_clusters = k).fit(descriptor_list)
-
+centroids = kmeans.cluster_centers_
 histogram = build_histogram(descriptor_list, kmeans)
 
-subplot(211)
-subplot(212)
-plt.bar(list(range(kmeans.cluster_centers_)), histogram)
+plt.subplot(121)
+plt.plot(centroids, 'ro')
+
+plt.subplot(122)
+plt.bar(list(range(len(centroids))), histogram)
 
 plt.show()
 
